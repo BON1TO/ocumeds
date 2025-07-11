@@ -38,7 +38,8 @@ if SKIP_MODELS:
 else:
     # Ensure models are downloaded
     if not os.path.exists("predictors/DR_predictor.h5"):
-        import download_models
+        raise FileNotFoundError("Model file not found: predictors/DR_predictor.h5")
+
 
     # Load models
     model_dr = tf.keras.models.load_model("predictors/DR_predictor.h5")
