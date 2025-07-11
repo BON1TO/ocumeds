@@ -2,4 +2,35 @@ venv310/
 venv*/
 *.pyc
 __pycache__/
+**/.DS_Store# Python virtual environments
+venv310/
+venv*/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.dll
+
+# MacOS
+.DS_Store
 **/.DS_Store
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# TensorFlow model checkpoints
+*.ckpt
+checkpoint
+
+# VSCode settings (optional)
+.vscode/
+
+# PyCharm settings (optional)
+.idea/
+
