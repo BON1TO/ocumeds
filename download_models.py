@@ -15,7 +15,7 @@ for local_name, repo_file in files.items():
     print(f"Downloading {local_name}...")
     output_path = os.path.join(model_dir, local_name)
     hf_hub_download(
-        repo_id="bwalia5/ocumedai-models",
+        repo_id="BON1TO/ocumedai-models",  # Updated repo ID
         filename=repo_file,
         local_dir=model_dir,
         local_dir_use_symlinks=False
