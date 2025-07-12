@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,7 @@ import io
 
 app = FastAPI()
 
-# CORS for both local and deployed frontend
+# Allow frontend access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -24,22 +25,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ENV flag to skip model loading during initial deploy
+# ENV flag to skip models
 SKIP_MODELS = os.getenv("SKIP_MODELS", "false").lower() == "true"
 
-# Minimal test route
 @app.get("/")
 def home():
     return {"message": "OcuMedAI FastAPI is online"}
 
-# Skip all model logic if flag is set
 if SKIP_MODELS:
     print("🟡 Skipping model loading due to SKIP_MODELS=True")
 else:
-    # Ensure models are downloaded
+    # Download models if not present
     if not os.path.exists("predictors/DR_predictor.h5"):
-        raise FileNotFoundError("Model file not found: predictors/DR_predictor.h5")
-
+        print("📦 Models not found locally. Downloading from Hugging Face...")
+        try:
+            subprocess.run(["python", "download_models.py"], check=True)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("❌ Model download failed. Check Hugging Face repo or internet connection.") from e
 
     # Load models
     model_dr = tf.keras.models.load_model("predictors/DR_predictor.h5")
@@ -47,14 +49,12 @@ else:
     model_hba1c = joblib.load("predictors/hba1c_xgboost_predictor.pkl")
     scaler = joblib.load("predictors/hba1c_scaler.pkl")
 
-    # Image Preprocessing
     def preprocess_image(image_bytes):
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         image = image.resize((224, 224))
         img_array = np.array(image) / 255.0
         return np.expand_dims(img_array, axis=0)
 
-    # Prediction Route
     @app.post("/predict")
     async def predict(
         image: UploadFile = File(...),
@@ -66,18 +66,18 @@ else:
         img_data = await image.read()
         input_img = preprocess_image(img_data)
 
-        # DR Prediction
+        # DR
         dr_pred = model_dr.predict(input_img)
         dr_level = np.argmax(dr_pred)
         dr_labels = ['No DR', 'Mild', 'Moderate', 'Severe', 'Proliferate']
         dr_result = dr_labels[dr_level]
 
-        # HTN Prediction
+        # HTN
         htn_pred = model_htn.predict(input_img)
         htn_percent = float(np.clip(htn_pred[0][0] * 100, 0, 100))
         htn_binary = 1 if htn_percent >= 50 else 0
 
-        # HbA1c Prediction
+        # HbA1c
         sex_val = 1 if sex == "Male" else 0
         smoke_val = 1 if smokingStatus == "Yes" else 0
         diabetes_est = 1 if dr_level > 0 or htn_percent > 60 else 0
