@@ -1,5 +1,6 @@
 import os
 import subprocess
+import logging
 
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +11,10 @@ import tensorflow as tf
 import joblib
 from PIL import Image
 import io
+
+# ⬇️ Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("ocumed_api")
 
 app = FastAPI()
 
@@ -33,21 +38,29 @@ def home():
     return {"message": "OcuMedAI FastAPI is online"}
 
 if SKIP_MODELS:
-    print("🟡 Skipping model loading due to SKIP_MODELS=True")
+    logger.warning("🟡 SKIP_MODELS is True — model loading skipped.")
 else:
-    # Download models if not present
+    # Check for missing models
     if not os.path.exists("predictors/DR_predictor.h5"):
-        print("📦 Models not found locally. Downloading from Hugging Face...")
+        logger.info("📦 Model files not found locally. Initiating download from Hugging Face...")
         try:
             subprocess.run(["python", "download_models.py"], check=True)
+            logger.info("✅ Model files successfully downloaded.")
         except subprocess.CalledProcessError as e:
-            raise RuntimeError("❌ Model download failed. Check Hugging Face repo or internet connection.") from e
+            logger.error("❌ Model download failed! Check Hugging Face repo or internet connection.")
+            raise RuntimeError("Model download failed.") from e
 
     # Load models
-    model_dr = tf.keras.models.load_model("predictors/DR_predictor.h5")
-    model_htn = tf.keras.models.load_model("predictors/HTN_InceptionV3_regression.h5")
-    model_hba1c = joblib.load("predictors/hba1c_xgboost_predictor.pkl")
-    scaler = joblib.load("predictors/hba1c_scaler.pkl")
+    try:
+        logger.info("🔁 Loading model files...")
+        model_dr = tf.keras.models.load_model("predictors/DR_predictor.h5")
+        model_htn = tf.keras.models.load_model("predictors/HTN_InceptionV3_regression.h5")
+        model_hba1c = joblib.load("predictors/hba1c_xgboost_predictor.pkl")
+        scaler = joblib.load("predictors/hba1c_scaler.pkl")
+        logger.info("✅ All models loaded successfully.")
+    except Exception as e:
+        logger.exception("❌ Failed to load one or more models.")
+        raise
 
     def preprocess_image(image_bytes):
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
