@@ -109,6 +109,7 @@ async def predict(
         0.3 * dr_scaled +
         0.4 * hba1c_scaled
     ) * 100
+    
 
     return {
         "diabeticRetinopathyLevel": dr_result,
