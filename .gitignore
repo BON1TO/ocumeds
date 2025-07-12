@@ -34,3 +34,8 @@ checkpoint
 # PyCharm settings (optional)
 .idea/
 
+predictors/
+*.h5
+*.pkl
+*.zip
+
