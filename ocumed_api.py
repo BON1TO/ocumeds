@@ -18,6 +18,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:80",
         "https://ocumedai.onrender.com",
+        "https://ocumedai.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -60,8 +61,10 @@ else:
         age: int = Form(...),
         sex: str = Form(...),
         BMI: float = Form(...),
+
         smokingStatus: str = Form(...)
     ):
+        
         img_data = await image.read()
         input_img = preprocess_image(img_data)
 
