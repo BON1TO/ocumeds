@@ -1,21 +1,23 @@
-# 🧠 OcuMedAI - FastAPI Medical Predictor API
+# OcuMeds – Diabetic Retinopathy Detection API
 
-OcuMedAI is a machine learning-powered FastAPI backend that analyzes a patient's retinal image and clinical data to predict:
+OcuMeds is a FastAPI-based machine learning application that analyzes eye images to detect diabetic retinopathy using a pre-trained convolutional neural network (CNN).
 
-- **Diabetic Retinopathy (DR)**
-- **Hypertension (HTN) Risk**
-- **Estimated HbA1c (Blood Sugar)**
-- **Atherosclerosis Risk**
-
-This API is intended for integration with frontend apps or platforms that help screen chronic health conditions using AI.
+> 🚀 Deployed via **Docker** and **Microsoft Azure**.
 
 ---
 
-## 🚀 Features
+## 🔬 Features
 
-- 🔍 DR detection using CNN model (`DR_predictor.h5`)
-- ⚡ Hypertension prediction with regression model
-- 🧪 HbA1c estimation via XGBoost
-- 💓 Atherosclerosis risk score calculation
-- 📦 FastAPI-powered backend
-- 🧬 Supports image and form data upload
+- Upload eye images via REST API
+- Predict diabetic retinopathy stage using a trained model
+- Built with TensorFlow, FastAPI, and OpenCV
+- Deployed with Docker container on Azure
+- Supports CORS for frontend communication
+
+---
+
+## 🐳 Dockerized Deployment
+
+### 🔧 Build Docker Image
+```bash
+docker build -t ocumeds-api .
